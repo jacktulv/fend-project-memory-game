@@ -6,15 +6,16 @@
 //画HTML
 $(drawGird);
  function drawGird(){
+   $('.seconds').html(times);
    $('.moves').html(count);
    //定义卡片图标类型
-   var CardsType=['fa fa-diamond','fa fa-paper-plane-o','fa fa-anchor','fa fa-bolt',
+   const CardsType=['fa fa-diamond','fa fa-paper-plane-o','fa fa-anchor','fa fa-bolt',
    'fa fa-cube','fa fa-leaf','fa fa-diamond','fa fa-paper-plane-o','fa fa-anchor',
    'fa fa-bolt','fa fa-cube','fa fa-leaf'];
   //定义卡牌
-   var Card=$('<li class="card"><i></i></li>');
+   let Card=$('<li class="card"><i></i></li>');
    shuffle(CardsType);
-   for(var i=0;i<12;i++){
+   for(let i=0;i<12;i++){
       Card.children('i').addClass(CardsType[i]);
       $('.deck').append(Card.clone());
       Card.children('i').removeClass(CardsType[i]);
@@ -53,13 +54,26 @@ function shuffle(array) {
  *    + if all cards have matched, display a message with the final score (put this functionality in another function that you call from this one)
  */
 
- var Cards=new Array();
- var count=0,matched=0;//记数和匹配
+ let Cards=new Array();
+ let count=0,matched=0;star=3; times=0; startFlag=false//记数和匹配和星 时间 开始计时标志
+
+ //设计数器
+ let nIntervId ;
+ function jia1s() {
+   nIntervId= setInterval(function(){times++;$('.seconds').html(times);}, 1000);
+ }
+ //
+ function stopJia1s() {
+   clearInterval(nIntervId);
+ }
+
 
 $(function(){
+
   //处理重置
   $('div.restart').on('click', function(){
-     count=0;matched=0;
+     stopJia1s();
+     count=0;matched=0;times=0;startFlag=false;
      Cards=[];
      $('.deck').html('');
      drawGird();
@@ -67,35 +81,45 @@ $(function(){
 
   //处理点击事件
   $('.deck').on('click','li',function(){
-    count++;
+
+    if(!startFlag){
+       jia1s();startFlag=true;
+    }
     $('.moves').html(count);
-    var Card = $(this);
-    var CardsType=Card.children().attr("class");
+    let Card = $(this);
+    let CardsType=Card.children().attr("class");
     //保证是未翻的牌
     if(Card.hasClass("open")||Card.hasClass("match")||Card.hasClass("show")){
         alert("此牌已翻");
     }
 
-
+    //push1个pop1个
     else if(Cards.length===0){
-      Card.addClass("open show");
+      Card.addClass("open show animated bounce");
       Cards.push(CardsType);
     }else{
           if(Cards.includes(CardsType)){
-              Card.addClass("show match");
-              $('li.open').toggleClass("open match");
+              Card.addClass("show match animated bounce");
+              $('li.open').toggleClass("open match animated bounce");
               Cards.pop();
+              dealcount();
               matched++;
               if(matched===6){
+                stopJia1s();
                 setTimeout(function(){
-                  alert("恭喜您获得胜利 \n 共用"+count+"步 重新开始请点刷新")},500);
+                  alert(
+                      `        恭喜您获得胜利
+                  共用 ${count}步 获得${star}总耗时${times}秒
+                  重新开始请点刷新按钮`)},500);
               }
           }else{
-              Card.addClass("open show");
+              Card.addClass("open show animated bounce");
+              dealcount();
               setTimeout(function(){
               Card.removeClass("open show");
-              $('li.open').toggleClass("open show");
+              $('li.open').toggleClass("open show animated bounce");
               Cards.pop();
+
             },200);
         }
       }
@@ -103,3 +127,22 @@ $(function(){
 
   });
 })
+
+//处理计数以及依照计数打星
+function dealcount(){
+  count++;
+  $('.moves').html(count);
+  switch (count) {
+
+
+    case 10:$('.stars li:first-child').children().attr("class","fa fa-star-o");star--;
+    break;
+
+    case 15:$('.stars li:nth-child(2)').children().attr("class","fa fa-star-o");star--;
+    break;
+
+    case 22:$('.stars li:nth-child(3)').children().attr("class","fa fa-star-o");star--;
+    break;
+
+  }
+}
